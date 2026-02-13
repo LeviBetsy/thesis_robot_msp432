@@ -103,6 +103,16 @@ void UART1_Init(void);
  */
 uint8_t UART1_InChar(void);
 
+
+/**
+ * @details   Return Status of input uart buffer
+ * @param  none
+ * @return 0 if there is no data, >0 if there is data
+ * @note   UART1_Init must be called once prior
+ * @brief  Receive byte into MSP432
+ */
+uint8_t UART1_HasIn(void);
+
 /**
  * @details   Transmit a character to EUSCI_A2 UART
  * @details   Busy-wait synchronization,

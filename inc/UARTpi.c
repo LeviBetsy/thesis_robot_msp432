@@ -97,6 +97,10 @@ uint8_t UART1_InChar(void){
   return((char)(EUSCI_A2->RXBUF));
 }
 
+uint8_t UART1_HasIn(void){
+  return (EUSCI_A2->IFG&0x01);
+}
+
 ///------------UART1_OutChar------------
 // Output 8-bit to serial port, busy-wait
 // Input: letter is an 8-bit data to be transferred

@@ -46,12 +46,6 @@ policies, either expressed or implied, of the FreeBSD Project.
 #include "../inc/SysTick.h"
 
 
-// Driver test
-void Pause(void){
-  while(LaunchPad_Input()==0) {};  // wait for touch
-  while(LaunchPad_Input() != 0) {};     // wait for release
-}
-
 // void exchange(){
 //   uint8_t data = 0;
 //   while(1){
@@ -68,7 +62,6 @@ void Pause(void){
 void main(void){
   Clock_Init48MHz();                   // set system clock to 48 MHz
   UART1_Init();
-  // LaunchPad_Init();
 
   // while(1){
   //   UART1_OutChar('D');
