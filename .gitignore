@@ -1,0 +1,18 @@
+.jxbrowser.userdata/
+.metadata/
+.theia/
+datasheets/
+documentation/
+dvt/
+driverlib/
+
+Generated Binaries/
+Compiler Includes/
+.launches/
+Debug/
+.settings/
+targetConfigs/
+.ccsproject
+.clangd
+.project
+.cproject
