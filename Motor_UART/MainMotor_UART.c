@@ -49,34 +49,20 @@ policies, either expressed or implied, of the FreeBSD Project.
 // Right motor enable connected to P3.6 (J2.11)
 
 #include "msp.h"
-#include "../inc/Bump.h"
-#include "../inc/Clock.h"
-#include "../inc/SysTick.h"
-#include "../inc/LaunchPad.h"
-#include "../inc/MotorSimple.h"
-#include "../inc/UARTpi.h"
-#include "../inc/Pi_Commands.h"
+#include "src/inc/Bump.h"
+#include "src/inc/Clock.h"
+#include "src/inc/SysTick.h"
+#include "src/inc/LaunchPad.h"
+#include "src/inc/MotorSimple.h"
+// #include "../inc/UARTpi.h"
+#include "src/UARTpi.h"
+#include "src/inc/Pi_Commands.h"
 
 // Driver test
 void Pause(void){
   while(LaunchPad_Input()==0) {};  // wait for touch
   while(LaunchPad_Input() != 0) {};     // wait for release
 }
-
-
-// int Program12_1(void){
-  
-//   while(1){
-//     Pause();
-//     Motor_ForwardSimple(5000,2000);  // your function
-//     // Pause();
-//     // Motor_BackwardSimple(5000,2000); // your function
-//     // Pause();
-//     // Motor_LeftSimple(5000,2000);     // your function
-//     // Pause();
-//     // Motor_RightSimple(5000,2000);    // your function
-//   }
-// }
 
 
 void main (void) {

@@ -1,9 +1,28 @@
-// Lab11_UARTmain.c
-// Runs on MSP432
-// Test the functions in UART0.c by printing various
-// Busy-wait device driver for the UART UCA0.
-// Daniel Valvano
-// May 24, 2019
+/**
+ * @file      Bump.h
+ * @brief     Provide low-level functions that interface bump switches the robot.
+ * @details   Six switches are connected to Port 4 <br>
+ 1) Hardware uses negative logic with internal pullup<br>
+ 2) Positioned on the front of the robot to detect collisions<br>
+ 3) Software returns 6-bit positive logic (1 means collision)<br>
+ * @version   TI-RSLK MAX v1.1
+ * @author    Daniel Valvano and Jonathan Valvano
+ * @copyright Copyright 2019 by Jonathan W. Valvano, valvano@mail.utexas.edu,
+ * @warning   AS-IS
+ * @note      For more information see  http://users.ece.utexas.edu/~valvano/
+ * @date      June 28, 2019
+
+<table>
+<caption id="Bump_ports4">Six Bump sensors</caption>
+<tr><th>Pin  <th>Sensor
+<tr><th>P4.7 <td>Bump5, left side of robot
+<tr><th>P4.6 <td>Bump4
+<tr><th>P4.5 <td>Bump3
+<tr><th>P4.3 <td>Bump2
+<tr><th>P4.2 <td>Bump1
+<tr><th>P4.0 <td>Bump0, right side of robot
+</table>
+ ******************************************************************************/
 
 /* This example accompanies the book
    "Embedded Systems: Introduction to Robotics,
@@ -39,44 +58,32 @@ those of the authors and should not be interpreted as representing official
 policies, either expressed or implied, of the FreeBSD Project.
 */
 
-#include "msp.h"
-#include "../inc/Clock.h"
-#include "./UARTpi.h"
-#include "../inc/LaunchPad.h"
-#include "../inc/SysTick.h"
 
-
-// void exchange(){
-//   uint8_t data = 0;
-//   while(1){
-//     UART1_OutChar(data);
-//     data = UART1_InChar();
-//     if (data >= 254) {
-//       break;
-//     }
-//   }
-// }
 /**
- * main.c
+ * Initialize Bump sensors<br>
+ * Make Port 4 pins 7,6,5,3,2,0 as inputs<br>
+ * Activate interface pullup
+ * @param none
+ * @return none
+ * @brief  Initialize Bump sensors
  */
-void main(void){
-  Clock_Init48MHz();                   // set system clock to 48 MHz
-  UART1_Init();
+void Bump_Init(void);
 
-  // while(1){
-  //   UART1_OutChar('D');
-  //   UART1_OutChar('R');
-  //   UART1_OutChar('N');
-  //   UART1_OutChar('\n');
-  //   Clock_Delay1ms(500);
-  // }
-  uint8_t data = 0;
-  while(1){
-    UART1_OutChar(data);
-    data = UART1_InChar();
-    data += 1;
-    if (data >= 254) {
-      break;
-    }
-  }
-}
+/**
+ * Read current state of 6 bump switches<br>
+ * Read Port 4 pins 7,6,5,3,2,0 inputs<br>
+ * Returns a 6-bit positive logic result (0 to 63)<br>
+ * Positive Logic means: 0 if bumped, 1 if not bumped
+ * bit 5 Bump5<br>
+ * bit 4 Bump4<br>
+ * bit 3 Bump3<br>
+ * bit 2 Bump2<br>
+ * bit 1 Bump1<br>
+ * bit 0 Bump0
+ * @param none
+ * @return result is 6-bit positive logic
+ * @note  result is a packed, right-justified, positive logic
+ * @brief  Read current state of 6 switches
+ */
+uint8_t Bump_Read(void);
+
