@@ -75,7 +75,6 @@ void main (void) {
   SysTick_Init(); //DONT FORGET SYSTICK_INIT
   UART_Init(EUSCI_A0);
   EnableInterrupts();
-  __enable_irq()
 
 
   CurrCmd.inst = IDLE; //this will get changed through UART interrupt
