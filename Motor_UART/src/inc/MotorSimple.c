@@ -41,9 +41,7 @@ policies, either expressed or implied, of the FreeBSD Project.
 */
 
 #include <stdint.h>
-#include "msp.h"
-#include "../inc/SysTick.h"
-#include "../inc/Bump.h"
+#include "MotorSimple.h"
 
 
 /*
@@ -55,8 +53,7 @@ void SysTick_Wait1us(uint32_t delay){
   SysTick->LOAD = ticks - 1;
   SysTick->VAL = 0;          // any write to CVR clears it and COUNTFLAG in CSR
   while(( SysTick->CTRL&0x00010000) == 0){};
-  return;
-  
+  return; 
 }
 //**************RSLK1.1***************************
 // Left motor direction connected to P5.4 (J3.29)
@@ -108,16 +105,26 @@ void Motor_ForwardSimple(uint16_t duty, uint32_t time){
   uint16_t L = 10000-H;
   uint32_t i;
   for (i = 0; i < time; i++) {
-    P2->OUT |= 0xC0;
-    SysTick_Wait1us(H);
-    P2->OUT &= ~0xC0;
-    SysTick_Wait1us(L);
+    //check currcmd
+    if (CurrCmd.inst != FORWARD) {
+      Motor_StopSimple();
+      return;
+    }
+    //check bump
     uint8_t bumped = Bump_Read();
     if (bumped < 63) { //using positive logic to detect bumper
       Motor_StopSimple();
       return;
     }
+
+
+    P2->OUT |= 0xC0;
+    SysTick_Wait1us(H);
+    P2->OUT &= ~0xC0;
+    SysTick_Wait1us(L);
+    
   }
+  //run uninterrupted till the end of function's lifetime
   Motor_StopSimple();
 }
 void Motor_BackwardSimple(uint16_t duty, uint32_t time){
@@ -134,15 +141,23 @@ void Motor_BackwardSimple(uint16_t duty, uint32_t time){
   uint16_t L = 10000-H;
   uint32_t i;
   for (i = 0; i < time; i++) {
-    P2->OUT |= 0xC0;
-    SysTick_Wait1us(H);
-    P2->OUT &= ~0xC0;
-    SysTick_Wait1us(L);
+    //check currcmd
+    if (CurrCmd.inst != BACKWARD) {
+      Motor_StopSimple();
+      return;
+    }
+    //check bump
     uint8_t bumped = Bump_Read();
     if (bumped < 63) { //using positive logic to detect bumper
       Motor_StopSimple();
       return;
     }
+
+  
+    P2->OUT |= 0xC0;
+    SysTick_Wait1us(H);
+    P2->OUT &= ~0xC0;
+    SysTick_Wait1us(L);
   }
   Motor_StopSimple();
 }
@@ -166,15 +181,22 @@ void Motor_LeftSimple(uint16_t duty, uint32_t time){
   uint16_t L = 10000-H;
   uint32_t i;
   for (i = 0; i < time; i++) {
-    P2->OUT |= 0x80;
-    SysTick_Wait1us(H);
-    P2->OUT &= ~0x80;
-    SysTick_Wait1us(L);
+    //check currcmd
+    if (CurrCmd.inst != LEFT) {
+      Motor_StopSimple();
+      return;
+    }
+    //check bump
     uint8_t bumped = Bump_Read();
     if (bumped < 63) { //using positive logic to detect bumper
       Motor_StopSimple();
       return;
     }
+
+    P2->OUT |= 0x80;
+    SysTick_Wait1us(H);
+    P2->OUT &= ~0x80;
+    SysTick_Wait1us(L);
   }
   Motor_StopSimple();
 }
@@ -198,15 +220,22 @@ void Motor_RightSimple(uint16_t duty, uint32_t time){
   uint16_t L = 10000-H;
   uint32_t i;
   for (i = 0; i < time; i++) {
-    P2->OUT |= 0x40;
-    SysTick_Wait1us(H);
-    P2->OUT &= ~0x40;
-    SysTick_Wait1us(L);
+    //check currcmd
+    if (CurrCmd.inst != RIGHT) {
+      Motor_StopSimple();
+      return;
+    }
+    //check bump
     uint8_t bumped = Bump_Read();
     if (bumped < 63) { //using positive logic to detect bumper
       Motor_StopSimple();
       return;
     }
+
+    P2->OUT |= 0x40;
+    SysTick_Wait1us(H);
+    P2->OUT &= ~0x40;
+    SysTick_Wait1us(L);
   }
   Motor_StopSimple();
 }

@@ -57,7 +57,9 @@ policies, either expressed or implied, of the FreeBSD Project.
 // #include "../inc/UARTpi.h"
 #include "src/UARTpi.h"
 #include "src/inc/Pi_Commands.h"
+#include "src/inc/CortexM.h"
 
+volatile Command_t CurrCmd;
 // Driver test
 void Pause(void){
   while(LaunchPad_Input()==0) {};  // wait for touch
@@ -71,32 +73,29 @@ void main (void) {
   Bump_Init();      // bump switches
   Motor_InitSimple();     // your function
   SysTick_Init(); //DONT FORGET SYSTICK_INIT
-  UART1_Init();
+  UART_Init(EUSCI_A0);
+  EnableInterrupts();
+  __enable_irq()
 
-  Pi_Command_t instruction = IDLE;
+
+  CurrCmd.inst = IDLE; //this will get changed through UART interrupt
   while(1){
-    if (UART1_HasIn()){
-      instruction = (Pi_Command_t) UART1_InChar(); 
-    }
-    //if uart input is larger than commands then stop motor later
-
-
-    switch(instruction) {
-      case FORWARD:
-          Motor_ForwardSimple(5000,2000);
-          instruction = IDLE;
+    switch(CurrCmd.inst) {
+      case FORWARD: 
+          Motor_ForwardSimple(5000,500);
+          // command.inst = IDLE;
           break;
       case BACKWARD:
-          Motor_BackwardSimple(5000,2000);
-          instruction = IDLE;
+          Motor_BackwardSimple(5000,500);
+          // command.inst = IDLE;
           break;
       case LEFT:
-          Motor_LeftSimple(5000,2000);
-          instruction = IDLE;
+          Motor_LeftSimple(5000,500);
+          // command.inst = IDLE;
           break;
       case RIGHT:
-          Motor_RightSimple(5000,2000);
-          instruction = IDLE;
+          Motor_RightSimple(5000,500);
+          // command.inst = IDLE;
           break;
       case IDLE:
       default:

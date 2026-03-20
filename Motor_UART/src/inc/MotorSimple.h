@@ -1,3 +1,4 @@
+
 /**
  * @file      MotorSimple.h
  * @brief     Set motor speed and direction
@@ -61,6 +62,12 @@ policies, either expressed or implied, of the FreeBSD Project.
 
 #ifndef MOTORSIMPLE_H_
 #define MOTORSIMPLE_H_
+
+#include "Pi_Commands.h"
+#include "msp.h"
+#include "SysTick.h"
+#include "Bump.h"
+
 // *******Lab 12 solution*******
 
 /**

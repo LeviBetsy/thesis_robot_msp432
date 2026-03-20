@@ -1,11 +1,7 @@
-// Switch.c
-// Runs on MSP432
-// Provide functions that initialize a GPIO as an input pin and
-// allow reading of two negative logic switches on P1.1 and P1.4
-// and an external switch on P1.5.
+// CortexM.c
+// Cortex M registers and basic functions used in these labs
 // Daniel and Jonathan Valvano
-// April 22, 2015
-
+// September 20, 2016
 /* This example accompanies the book
    "Embedded Systems: Introduction to Robotics,
    Jonathan W. Valvano, ISBN: 9781074544300, copyright (c) 2019
@@ -38,49 +34,53 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 The views and conclusions contained in the software and documentation are
 those of the authors and should not be interpreted as representing official
 policies, either expressed or implied, of the FreeBSD Project.
-*/
-
-// built-in LED1 connected to P1.0
-// negative logic built-in Button 1 connected to P1.1
-// negative logic built-in Button 2 connected to P1.4
-// positive logic switch connected to P1.5
-// built-in red LED connected to P2.0
-// built-in green LED connected to P2.1
-// built-in blue LED connected to P2.2
-
+ */
 #include <stdint.h>
-#include "msp.h"
 
-#define SW1       0x02                  // on the left side of the LaunchPad board
-#define SW2       0x10                  // on the right side of the LaunchPad board
-#define SWEXT     0x20                  // external switch
 
-//------------Switch_Init------------
-// Initialize GPIO Port 1 bit 5 for input.  An external pull-down
-// resistor is used.
-// Input: none
-// Output: none
-void Switch_Init(void){
-  P1->SEL0 &= ~0x20;
-  P1->SEL1 &= ~0x20;                 // configure P1.5 as GPIO
-  P1->DIR &= ~0x20;                  // make P1.5 in
-  P1->REN &= ~0x20;                  // disable pull resistor on P1.5
+//*********** DisableInterrupts ***************
+// disable interrupts
+// inputs:  none
+// outputs: none
+void DisableInterrupts(void){
+  __asm ("    CPSID  I\n"
+         "    BX     LR\n");
 }
 
-//------------Switch_Input------------
-// Read and return the status of GPIO Port 1 bit 5.
-// Input: none
-// Output: 0x20 if P1.5 is high
-//         0x00 if P1.5 is low
-uint32_t Switch_Input(void){
-                                   // read P1.5 input
-  return (P1->IN&0x20);            // return 0x20(pressed) or 0(not pressed)
+//*********** EnableInterrupts ***************
+// enable interrupts
+// inputs:  none
+// outputs: none
+void EnableInterrupts(void){
+  __asm  ("    CPSIE  I\n"
+          "    BX     LR\n");
 }
-// Volume2 code
-#define P15IN (*((volatile uint8_t *)(0x42098014)))
-uint32_t Switch_Input2(void){
-  return P15IN;      // 0x01 if pressed, 0x00 if not pressed
+//*********** StartCritical ************************
+// make a copy of previous I bit, disable interrupts
+// inputs:  none
+// outputs: previous I bit
+void StartCritical(void){
+  __asm  ("    MRS    R0, PRIMASK   ; save old status \n"
+          "    CPSID  I             ; mask all (except faults)\n"
+          "    BX     LR\n");
 }
 
+//*********** EndCritical ************************
+// using the copy of previous I bit, restore I bit to previous value
+// inputs:  previous I bit
+// outputs: none
+void EndCritical(void){
+  __asm  ("    MSR    PRIMASK, R0\n"
+          "    BX     LR\n");
+}
 
+//*********** WaitForInterrupt ************************
+// go to low power mode while waiting for the next interrupt
+// inputs:  none
+// outputs: none
+void WaitForInterrupt(void){
+  __asm  ("    WFI\n"
+          "    BX     LR\n");
+}
+	
 

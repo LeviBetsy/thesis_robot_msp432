@@ -46,21 +46,58 @@ policies, either expressed or implied, of the FreeBSD Project.
 // J1.3  from Bluetooth (DIO3_TXD) to LaunchPad (UART RxD){MSP432 P3.2}
 // J1.4  from LaunchPad to Bluetooth (DIO2_RXD) (UART TxD){MSP432 P3.3}
 
-#include <stdint.h>
 #include "UARTpi.h"
-#include "msp.h"
 
-// EUSCI_A_Type* uartPort = EUSCI_A2;
-EUSCI_A_Type* uartPort = EUSCI_A0;
-// uartPort = EUSCI_A0;
-// uartPort = EUSCI_A2;
+EUSCI_A_Type* uartPort;
+
+// //**** FIFO */
+// #define FIFOSIZE   256       // size of the FIFOs (must be power of 2)
+// #define FIFOSUCCESS 1        // return value on success
+// #define FIFOFAIL    0        // return value on failure
+// uint32_t RxPutI;      // should be 0 to SIZE-1
+// uint32_t RxGetI;      // should be 0 to SIZE-1 
+// uint32_t RxFifoLost;  // should be 0 
+// uint8_t RxFIFO[FIFOSIZE];
+// void RxFifo_Init(void){
+//   RxPutI = RxGetI = 0;                      // empty
+//   RxFifoLost = 0; // occurs on overflow
+// }
+// int RxFifo_Put(uint8_t data){
+//   if(((RxPutI+1)&(FIFOSIZE-1)) == RxGetI){
+//     RxFifoLost++;
+//     return FIFOFAIL; // fail if full  
+//   }    
+//   RxFIFO[RxPutI] = data;                    // save in FIFO
+//   RxPutI = (RxPutI+1)&(FIFOSIZE-1);         // next place to put
+//   return FIFOSUCCESS;
+// }
+// int RxFifo_Get(uint8_t *datapt){ 
+//   if(RxPutI == RxGetI) return 0;            // fail if empty
+//   *datapt = RxFIFO[RxGetI];                 // retrieve data
+//   RxGetI = (RxGetI+1)&(FIFOSIZE-1);         // next place to get
+//   return FIFOSUCCESS; 
+// }
+// //**** FIFO */
+
+// //------------UART1_InStatus------------
+// // Returns how much data available for reading
+// // Input: none
+// // Output: number of bytes in receive FIFO
+// uint32_t UART_InStatus(void){  
+//  return ((RxPutI - RxGetI)&(FIFOSIZE-1));  
+// }
+
+
+
                     
-//------------UART1_Init------------
+//------------UART_Init------------
 // Initialize the UART for 115,200 baud rate (assuming 12 MHz SMCLK clock),
 // 8 bit word length, no parity bits, one stop bit
 // Input: none
 // Output: none
-void UART1_Init(void){
+void UART_Init(EUSCI_A_Type* uartSource){
+  // RxFifo_Init(); 
+  uartPort = uartSource;
   uartPort->CTLW0 = 0x0001;         // hold the USCI module in reset mode
   // bit15=0,      no parity bits
   // bit14=x,      not used when parity is disabled
@@ -82,45 +119,71 @@ void UART1_Init(void){
 
   uartPort->MCTLW &= ~0xFFF1;   // clear first and second modulation stage bit fields
 
-  P3->SEL0 |= 0x0C;
-  P3->SEL1 &= ~0x0C;          // configure P3.3 and P3.2 as primary module function
-  uartPort->CTLW0 &= ~0x0001; // enable the USCI module
-                            
-  uartPort->IE &= ~0x000F;;     
+
+  if (uartPort == EUSCI_A0) {
+      // EUSCI_A0 uses P1.2 (RX) and P1.3 (TX)
+      P1->SEL0 |= 0x0C;
+      P1->SEL1 &= ~0x0C;
+      NVIC->IP[16] = 0x40; // priority 2
+      NVIC->ISER[0] = 0x00010000; // enable interrupt 16 in NVIC
+  } 
+  else if (uartPort == EUSCI_A2) {
+      // EUSCI_A2 uses P3.2 (RX) and P3.3 (TX)
+      P3->SEL0 |= 0x0C;
+      P3->SEL1 &= ~0x0C;
+      NVIC->IP[18] = 0x2<<5; // priority 2
+      NVIC->ISER[0] = 0x00040000; // enable interrupt 18 in NVIC
+  }
+  
+  uartPort->CTLW0 &= ~0x0001; // enable the USCI module                
+  uartPort->IE |= 0x0001; // enable interrupts on receive full (only RXIE)
 }
 
 
-//------------UART1_InChar------------
+//------------UART_InChar------------
 // Wait for new serial port input, interrupt synchronization
 // Input: none
 // Output: an 8-bit byte received
 // spin if RxFifo is empty
-uint8_t UART1_InChar(void){
-  while((uartPort->IFG&0x01) == 0);
-  return((char)(uartPort->RXBUF));
-}
 
-uint8_t UART1_HasIn(void){
-  return (uartPort->IFG&0x01);
-}
+// uint8_t UART_InChar(void){
+//   while((uartPort->IFG&0x01) == 0);
+//   return((char)(uartPort->RXBUF));
+// }
 
-///------------UART1_OutChar------------
+///------------UART_OutChar------------
 // Output 8-bit to serial port, busy-wait
 // Input: letter is an 8-bit data to be transferred
 // Output: none
-void UART1_OutChar(uint8_t data){
+void UART_OutChar(uint8_t data){
   while((uartPort->IFG&0x02) == 0);
   uartPort->TXBUF = data;
 }
 
+void EUSCIA2_IRQHandler(void){
+  if(EUSCI_A2->IFG&0x01){             // RX data register full
+    // RxFifo_Put((uint8_t)EUSCI_A2->RXBUF);// clears UCRXIFG
+    uint8_t data = (uint8_t)EUSCI_A2->RXBUF;
+    CurrCmd.inst = (Instruction_t) data;
+  } 
+}
 
-//------------UART1_OutString------------
+void EUSCIA0_IRQHandler(void){
+  if(EUSCI_A0->IFG&0x01){             // RX data register full
+    // RxFifo_Put((uint8_t)EUSCI_A2->RXBUF);// clears UCRXIFG
+    uint8_t data = (uint8_t)EUSCI_A0->RXBUF;
+    CurrCmd.inst = (Instruction_t) data;
+  } 
+}
+
+
+//------------UART_OutString------------
 // Output String (NULL termination)
 // Input: pointer to a NULL-terminated string to be transferred
 // Output: none
-void UART1_OutString(uint8_t *pt){
+void UART_OutString(uint8_t *pt){
   while(*pt != '\0'){
-    UART1_OutChar(*pt);
+    UART_OutChar(*pt);
     pt++;
   }
 }

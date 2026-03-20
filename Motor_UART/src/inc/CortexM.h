@@ -1,10 +1,7 @@
 /**
- * @file      Bump.h
- * @brief     Provide low-level functions that interface bump switches the robot.
- * @details   Six switches are connected to Port 4 <br>
- 1) Hardware uses negative logic with internal pullup<br>
- 2) Positioned on the front of the robot to detect collisions<br>
- 3) Software returns 6-bit positive logic (1 means collision)<br>
+ * @file      CortexM.h
+ * @brief     Basic functions used in these labs
+ * @details   Used for enabling and disabling interrupts
  * @version   TI-RSLK MAX v1.1
  * @author    Daniel Valvano and Jonathan Valvano
  * @copyright Copyright 2019 by Jonathan W. Valvano, valvano@mail.utexas.edu,
@@ -12,16 +9,6 @@
  * @note      For more information see  http://users.ece.utexas.edu/~valvano/
  * @date      June 28, 2019
 
-<table>
-<caption id="Bump_ports4">Six Bump sensors</caption>
-<tr><th>Pin  <th>Sensor
-<tr><th>P4.7 <td>Bump5, left side of robot
-<tr><th>P4.6 <td>Bump4
-<tr><th>P4.5 <td>Bump3
-<tr><th>P4.3 <td>Bump2
-<tr><th>P4.2 <td>Bump1
-<tr><th>P4.0 <td>Bump0, right side of robot
-</table>
  ******************************************************************************/
 
 /* This example accompanies the book
@@ -31,7 +18,7 @@
  http://users.ece.utexas.edu/~valvano/
 
 Simplified BSD License (FreeBSD License)
-Copyright (c) 2019, Jonathan Valvano, All rights reserved.
+Copyright (c) 2017, Jonathan Valvano, All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
@@ -60,30 +47,58 @@ policies, either expressed or implied, of the FreeBSD Project.
 
 
 /**
- * Initialize Bump sensors<br>
- * Make Port 4 pins 7,6,5,3,2,0 as inputs<br>
- * Activate interface pullup
- * @param none
+ * Disables Interrupts
+ *
+ * @param  none
  * @return none
- * @brief  Initialize Bump sensors
+ *
+ * @brief  Sets the I bit in the PRIMASK to disable interrupts.
  */
-void Bump_Init(void);
+void DisableInterrupts(void); // Disable interrupts
+
 
 /**
- * Read current state of 6 bump switches<br>
- * Read Port 4 pins 7,6,5,3,2,0 inputs<br>
- * Returns a 6-bit positive logic result (0 to 63)<br>
- * Positive Logic means: 0 if bumped, 1 if not bumped
- * bit 5 Bump5<br>
- * bit 4 Bump4<br>
- * bit 3 Bump3<br>
- * bit 2 Bump2<br>
- * bit 1 Bump1<br>
- * bit 0 Bump0
- * @param none
- * @return result is 6-bit positive logic
- * @note  result is a packed, right-justified, positive logic
- * @brief  Read current state of 6 switches
+ * Enables Interrupts
+ *
+ * @param  none
+ * @return none
+ *
+ * @brief  clears the I bit in the PRIMASK to enable interrupts
  */
-uint8_t Bump_Read(void);
+void EnableInterrupts(void);  // Enable interrupts
+
+
+/**
+ * Start a critical section. Code between StartCritical and EndCritical is run atomically
+ *
+ * @param  none
+ * @return copy of the PRIMASK (I bit) before StartCritical called
+ *
+ * @brief  Saves a copy of PRIMASK and disables interrupts
+ */
+long StartCritical(void);    
+
+
+/**
+ * End a critical section. Code between StartCritical and EndCritical is run atomically
+ *
+ * @param  sr is PRIMASK (I bit) before StartCritical called
+ * @return none
+ *
+ * @brief  Sets PRIMASK with value passed in
+ */
+void EndCritical(long sr);    // restore I bit to previous value
+
+
+/**
+ * Enters low power sleep mode waiting for interrupt (WFI instruction)
+ * processor sleeps until next hardware interrupt
+ * returns after ISR has been run
+ *
+ * @param  none
+ * @return none
+ *
+ * @brief  Enters low power sleep mode waiting for interrupt
+ */
+void WaitForInterrupt(void);  
 
