@@ -73,7 +73,7 @@ void main (void) {
   Bump_Init();      // bump switches
   Motor_InitSimple();     // your function
   SysTick_Init(); //DONT FORGET SYSTICK_INIT
-  UART_Init(EUSCI_A0);
+  UART_Init(EUSCI_A2);
   EnableInterrupts();
 
 
@@ -81,19 +81,19 @@ void main (void) {
   while(1){
     switch(CurrCmd.inst) {
       case FORWARD: 
-          Motor_ForwardSimple(5000,500);
+          Motor_ForwardSimple(2500,500);
           // command.inst = IDLE;
           break;
       case BACKWARD:
-          Motor_BackwardSimple(5000,500);
+          Motor_BackwardSimple(2500,500);
           // command.inst = IDLE;
           break;
       case LEFT:
-          Motor_LeftSimple(5000,500);
+          Motor_LeftSimple(2500,500);
           // command.inst = IDLE;
           break;
       case RIGHT:
-          Motor_RightSimple(5000,500);
+          Motor_RightSimple(2500,500);
           // command.inst = IDLE;
           break;
       case IDLE:
