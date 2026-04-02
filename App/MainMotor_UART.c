@@ -73,7 +73,14 @@ void main (void) {
   Bump_Init();      // bump switches
   Motor_InitSimple();     // your function
   SysTick_Init(); //DONT FORGET SYSTICK_INIT
+
+  //Enable UART to communicate with the PI
   UART_Init(EUSCI_A2);
+
+  //Interrupt lists:
+  //UART Interrupt when received instruction from pi 
+  //TODO: UART Interrupt to record speed of left and right wheel & populate a FIFO
+  //TODO: FIFO Interrupt to send data whenever UART device is ready to send
   EnableInterrupts();
 
 

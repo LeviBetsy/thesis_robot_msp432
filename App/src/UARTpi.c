@@ -125,14 +125,14 @@ void UART_Init(EUSCI_A_Type* uartSource){
       P1->SEL0 |= 0x0C;
       P1->SEL1 &= ~0x0C;
       NVIC->IP[16] = 0x40; // priority 2
-      NVIC->ISER[0] = 0x00010000; // enable interrupt 16 in NVIC
+      NVIC->ISER[0] |= 0x00010000; // enable interrupt 16 in NVIC
   } 
   else if (uartPort == EUSCI_A2) {
       // EUSCI_A2 uses P3.2 (RX) and P3.3 (TX)
       P3->SEL0 |= 0x0C;
       P3->SEL1 &= ~0x0C;
       NVIC->IP[18] = 0x2<<5; // priority 2
-      NVIC->ISER[0] = 0x00040000; // enable interrupt 18 in NVIC
+      NVIC->ISER[0] |= 0x00040000; // enable interrupt 18 in NVIC
   }
   
   uartPort->CTLW0 &= ~0x0001; // enable the USCI module                

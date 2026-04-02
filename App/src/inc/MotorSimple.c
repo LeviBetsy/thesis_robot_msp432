@@ -118,6 +118,7 @@ void Motor_ForwardSimple(uint16_t duty, uint32_t time){
     }
 
 
+    //set 7th & 8th bit for both motor
     P2->OUT |= 0xC0;
     SysTick_Wait1us(H);
     P2->OUT &= ~0xC0;
@@ -193,6 +194,8 @@ void Motor_LeftSimple(uint16_t duty, uint32_t time){
       return;
     }
 
+
+    //8th bit for right motor
     P2->OUT |= 0x80;
     SysTick_Wait1us(H);
     P2->OUT &= ~0x80;
@@ -232,6 +235,7 @@ void Motor_RightSimple(uint16_t duty, uint32_t time){
       return;
     }
 
+    //7th bit for right motor
     P2->OUT |= 0x40;
     SysTick_Wait1us(H);
     P2->OUT &= ~0x40;
