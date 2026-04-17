@@ -49,12 +49,17 @@ policies, either expressed or implied, of the FreeBSD Project.
 // Right motor enable connected to P3.6 (J2.11)
 
 #include "msp.h"
-#include "../inc/Bump.h"
-#include "../inc/Clock.h"
-#include "../inc/SysTick.h"
-#include "../inc/LaunchPad.h"
-#include "../inc/MotorSimple.h"
+#include "src/inc/Bump.h"
+#include "src/inc/Clock.h"
+#include "src/inc/SysTick.h"
+#include "src/inc/LaunchPad.h"
+#include "src/inc/MotorSimple.h"
+// #include "../inc/UARTpi.h"
+#include "src/UARTpi.h"
+#include "src/inc/Pi_Commands.h"
+#include "src/inc/CortexM.h"
 
+volatile Command_t CurrCmd;
 // Driver test
 void Pause(void){
   while(LaunchPad_Input()==0) {};  // wait for touch
@@ -62,90 +67,46 @@ void Pause(void){
 }
 
 
-int Program12_1(void){
+void main (void) {
   Clock_Init48MHz();
   LaunchPad_Init(); // built-in switches and LEDs
   Bump_Init();      // bump switches
   Motor_InitSimple();     // your function
   SysTick_Init(); //DONT FORGET SYSTICK_INIT
-  while(1){
-    Pause();
-    Motor_ForwardSimple(5000,2000);  // your function
-    // Pause();
-    // Motor_BackwardSimple(5000,2000); // your function
-    // Pause();
-    // Motor_LeftSimple(5000,2000);     // your function
-    // Pause();
-    // Motor_RightSimple(5000,2000);    // your function
-  }
-}
 
-// Voltage current and speed as a function of duty cycle
-int main1(void){ //Program12_2(void){
-  uint16_t duty;
-  Clock_Init48MHz();
-  LaunchPad_Init();   // built-in switches and LEDs
-  Bump_Init();        // bump switches
-  Motor_InitSimple(); // initialization
-  SysTick_Init();
+  //Enable UART to communicate with the PI
+  UART_Init(EUSCI_A2);
+
+  //Interrupt lists:
+  //UART Interrupt when received instruction from pi 
+  //TODO: UART Interrupt to record speed of left and right wheel & populate a FIFO
+  EnableInterrupts();
+
+
+  CurrCmd.inst = IDLE; //this will get changed through UART interrupt
   while(1){
-    for(duty=2000; duty<=8000; duty=duty+2000){
-      Motor_StopSimple();   // measure current
-      Pause();
-      Motor_LeftSimple(duty,6000);  // measure current
+    switch(CurrCmd.inst) {
+      case FORWARD: 
+          Motor_ForwardSimple(2500,500);
+          // command.inst = IDLE;
+          break;
+      case BACKWARD:
+          Motor_BackwardSimple(2500,500);
+          // command.inst = IDLE;
+          break;
+      case LEFT:
+          Motor_LeftSimple(2500,500);
+          // command.inst = IDLE;
+          break;
+      case RIGHT:
+          Motor_RightSimple(2500,500);
+          // command.inst = IDLE;
+          break;
+      case IDLE:
+      default:
+          Motor_StopSimple();
+          break;
     }
   }
-}
 
-
-
-int Program12_3(void){
-  Clock_Init48MHz();
-  LaunchPad_Init();   // built-in switches and LEDs
-  SysTick_Init();
-
-  Bump_Init();        // bump switches
-  Motor_InitSimple(); // initialization
-
-  while(1){
-    Pause();
-    // Motor_StopSimple();
-    // uint8_t bumped = Bump_Read();
-    // Motor_ForwardSimple(9900,15000); // max speed 15 s
-    Motor_RightSimple(6000, 15000);
-  }
-}
-
-// does the robot move straight?
-int Program12_4(void){ // Program12_4, RSLK version 1.1
-  Clock_Init48MHz();
-  LaunchPad_Init();   // built-in switches and LEDs
-  Bump_Init();        // bump switches
-  Motor_InitSimple(); // initialization
-  SysTick_Init();
-  while(1){
-  //  Pause(); // start on SW1 or SW2
-    LaunchPad_Output(0x02);
-    Motor_ForwardSimple(5000,350);  // 3.5 seconds and stop
-    LaunchPad_Output(0x00);
-    Motor_StopSimple(); Clock_Delay1ms(500);
-    LaunchPad_Output(0x01);
-    Motor_BackwardSimple(3000,200); // reverse 2 sec
-    LaunchPad_Output(0x03);
-    Motor_LeftSimple(3000,200);     // right turn 2 sec
-    if(Bump_Read()){
-      LaunchPad_Output(0x01);
-      Motor_BackwardSimple(3000,100);// reverse 1 sec
-      LaunchPad_Output(0x03);
-      Motor_LeftSimple(3000,200);   // right turn 2 sec
-    }
-  }
-}
-
-void main (void) {
-    // main1();
-    Program12_1();
-    // Program12_2();
-    // Program12_3();
-    // Program12_4();
 }

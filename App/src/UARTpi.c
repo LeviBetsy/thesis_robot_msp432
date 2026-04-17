@@ -50,45 +50,6 @@ policies, either expressed or implied, of the FreeBSD Project.
 
 EUSCI_A_Type* uartPort;
 
-// //**** FIFO */
-// #define FIFOSIZE   256       // size of the FIFOs (must be power of 2)
-// #define FIFOSUCCESS 1        // return value on success
-// #define FIFOFAIL    0        // return value on failure
-// uint32_t RxPutI;      // should be 0 to SIZE-1
-// uint32_t RxGetI;      // should be 0 to SIZE-1 
-// uint32_t RxFifoLost;  // should be 0 
-// uint8_t RxFIFO[FIFOSIZE];
-// void RxFifo_Init(void){
-//   RxPutI = RxGetI = 0;                      // empty
-//   RxFifoLost = 0; // occurs on overflow
-// }
-// int RxFifo_Put(uint8_t data){
-//   if(((RxPutI+1)&(FIFOSIZE-1)) == RxGetI){
-//     RxFifoLost++;
-//     return FIFOFAIL; // fail if full  
-//   }    
-//   RxFIFO[RxPutI] = data;                    // save in FIFO
-//   RxPutI = (RxPutI+1)&(FIFOSIZE-1);         // next place to put
-//   return FIFOSUCCESS;
-// }
-// int RxFifo_Get(uint8_t *datapt){ 
-//   if(RxPutI == RxGetI) return 0;            // fail if empty
-//   *datapt = RxFIFO[RxGetI];                 // retrieve data
-//   RxGetI = (RxGetI+1)&(FIFOSIZE-1);         // next place to get
-//   return FIFOSUCCESS; 
-// }
-// //**** FIFO */
-
-// //------------UART1_InStatus------------
-// // Returns how much data available for reading
-// // Input: none
-// // Output: number of bytes in receive FIFO
-// uint32_t UART_InStatus(void){  
-//  return ((RxPutI - RxGetI)&(FIFOSIZE-1));  
-// }
-
-
-
                     
 //------------UART_Init------------
 // Initialize the UART for 115,200 baud rate (assuming 12 MHz SMCLK clock),
@@ -139,17 +100,23 @@ void UART_Init(EUSCI_A_Type* uartSource){
   uartPort->IE |= 0x0001; // enable interrupts on receive full (only RXIE)
 }
 
+//******** Interrupt routines, to change Command whenever receive Command from Pi
+//No FIFO, on receive, just change current instruction
+void EUSCIA2_IRQHandler(void){
+  if(EUSCI_A2->IFG&0x01){     // RX data register full
+    // RxFifo_Put((uint8_t)EUSCI_A2->RXBUF);
+    uint8_t data = (uint8_t)EUSCI_A2->RXBUF;
+    CurrCmd.inst = (Instruction_t) data;
+  } 
+}
 
-//------------UART_InChar------------
-// Wait for new serial port input, interrupt synchronization
-// Input: none
-// Output: an 8-bit byte received
-// spin if RxFifo is empty
-
-// uint8_t UART_InChar(void){
-//   while((uartPort->IFG&0x01) == 0);
-//   return((char)(uartPort->RXBUF));
-// }
+void EUSCIA0_IRQHandler(void){
+  if(EUSCI_A0->IFG&0x01){    // RX data register full
+    // RxFifo_Put((uint8_t)EUSCI_A2->RXBUF);
+    uint8_t data = (uint8_t)EUSCI_A0->RXBUF;
+    CurrCmd.inst = (Instruction_t) data;
+  } 
+}
 
 ///------------UART_OutChar------------
 // Output 8-bit to serial port, busy-wait
@@ -158,22 +125,6 @@ void UART_Init(EUSCI_A_Type* uartSource){
 void UART_OutChar(uint8_t data){
   while((uartPort->IFG&0x02) == 0);
   uartPort->TXBUF = data;
-}
-
-void EUSCIA2_IRQHandler(void){
-  if(EUSCI_A2->IFG&0x01){             // RX data register full
-    // RxFifo_Put((uint8_t)EUSCI_A2->RXBUF);// clears UCRXIFG
-    uint8_t data = (uint8_t)EUSCI_A2->RXBUF;
-    CurrCmd.inst = (Instruction_t) data;
-  } 
-}
-
-void EUSCIA0_IRQHandler(void){
-  if(EUSCI_A0->IFG&0x01){             // RX data register full
-    // RxFifo_Put((uint8_t)EUSCI_A2->RXBUF);// clears UCRXIFG
-    uint8_t data = (uint8_t)EUSCI_A0->RXBUF;
-    CurrCmd.inst = (Instruction_t) data;
-  } 
 }
 
 
