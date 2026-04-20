@@ -86,7 +86,7 @@ void TimerA3Capture_Init01(void(*task0)(uint16_t time), void(*task1)(uint16_t ti
     TIMER_A3->CTL = 0x0200;
     TIMER_A3->EX0 &= ~0x0007;       // configure for input clock divider /1
 
-    //*****TA3CPP0 */
+    //*****TA3CPP0 */ P10.4, Right Wheel
     // bits15-14=01,     capture on rising edge
     // bits13-12=00,     capture/compare input on CCI0A
     // bit11=1,          synchronous capture source
@@ -103,7 +103,8 @@ void TimerA3Capture_Init01(void(*task0)(uint16_t time), void(*task1)(uint16_t ti
     NVIC->IP[14] = 0x2<<5; // priority 2
     // NVIC->ISER[0] |= (1 << 14);
     NVIC->ISER[0] |= 0x00004000;
-    //*****TA3CPP1 */
+
+    //*****TA3CPP1 */ P10.5, Left Wheel
     TIMER_A3->CCTL[1] = 0x4910;
     NVIC->IP[15] = 0x2<<5; // priority 2
     // NVIC->ISER[0] |= (1 << 15);
@@ -123,32 +124,4 @@ void TA3_N_IRQHandler(void){
         TIMER_A3->CCTL[1] &= ~0x0001; //acknowledge CCIFG bit
         (*CaptureTask1)(TIMER_A3->CCR[1]);
     }
-
-    // //Poll to see which interrupt triggered the ISR
-    // for ( i= 1; i < 7; i ++){
-    //     //mask all the bits except CCIFG bit
-    //     if (TIMER_A3->CCTL[i] & 0x0001) {
-    //         TIMER_A3->CCTL[i] &= ~0x0001; //acknowledge CCIFG bit
-    //         (*CaptureTask1)(TIMER_A3->CCR[i]);
-    //         break;
-    //     }
-    // }
-
-}
-
-// old robot code
-
-//------------TimerA3Capture_Init02------old robot version------
-// Initialize Timer A3 in edge time mode to request interrupts on
-// the rising edges of P10.4 (TA3CCP0) and P8.2 (TA3CCP2).  The
-// interrupt service routines acknowledge the interrupt and call
-// a user function.
-// Input: task0 is a pointer to a user function called when P10.4 (TA3CCP0) edge occurs
-//              parameter is 16-bit up-counting timer value when P10.4 (TA3CCP0) edge occurred (units of 0.083 usec)
-//        task2 is a pointer to a user function called when P8.2 (TA3CCP2) edge occurs
-//              parameter is 16-bit up-counting timer value when P8.2 (TA3CCP2) edge occurred (units of 0.083 usec)
-// Output: none
-// Assumes: low-speed subsystem master clock is 12 MHz
-void TimerA3Capture_Init02(void(*task0)(uint16_t time), void(*task2)(uint16_t time)){
-// old robot code
 }

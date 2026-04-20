@@ -53,22 +53,6 @@ policies, either expressed or implied, of the FreeBSD Project.
 #ifndef TA3INPUTCAPTURE_H_
 #define TA3INPUTCAPTURE_H_
 
-
-/**
- * Initialize Timer A3 in edge time mode to request interrupts on
- * the rising edges of P10.4 (TA3CCP0) and P8.2 (TA3CCP2).  The
- * interrupt service routines acknowledge the interrupt and call
- * a user function.
- * @param task0 is a pointer to a user function called when P10.4 (TA3CCP0) edge occurs<br>
- *        parameter is 16-bit up-counting timer value when P10.4 (TA3CCP0) edge occurred (units of 0.083 usec)<br>
- * @param task2 is a pointer to a user function called when P8.2 (TA3CCP2) edge occurs<br>
- *        parameter is 16-bit up-counting timer value when P8.2 (TA3CCP2) edge occurred (units of 0.083 usec)
- * @return none
- * @note  Assumes low-speed subsystem master clock is 12 MHz
- * @brief  Initialize Timer A3 interrupts on P10.4 and P8.2
- */
-void TimerA3Capture_Init02(void(*task0)(uint16_t time), void(*task2)(uint16_t time));
-
 /**
  * Initialize Timer A3 in edge time mode to request interrupts on
  * the rising edges of P10.4 (TA3CCP0) and P10.5 (TA3CCP1).  The
