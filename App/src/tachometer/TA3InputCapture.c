@@ -119,11 +119,9 @@ void TA3_0_IRQHandler(void){
 }
 
 void TA3_N_IRQHandler(void){
-    uint8_t i;
     if (TIMER_A3->CCTL[1] & 0x0001){
         TIMER_A3->CCTL[1] &= ~0x0001; //acknowledge CCIFG bit
         (*CaptureTask1)(TIMER_A3->CCR[1]);
-        break;
     }
 
     // //Poll to see which interrupt triggered the ISR

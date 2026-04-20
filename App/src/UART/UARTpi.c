@@ -50,6 +50,15 @@ policies, either expressed or implied, of the FreeBSD Project.
 
 EUSCI_A_Type* uartPort;
 
+static uint8_t state = 0;
+//a correct sequence would be 0xAA Inst_T LeftDuty_MSB LeftDuty_LSB RightDuty_MSB RightDuty_LSB Checksum
+static uint8_t buffer[7]; //buffer for storing uart_message from Pi
+//uart_buffer[0]: start byte (0xAA if msg is correct)
+//uart_buffer[1]: Instruction type
+//uart_buffer[2:5]: LeftMSB, LeftLSB, RightMSB, RightLSB Duty Cycle
+//uart_buffer[6]:  the XOR checksum of uart_buffer[1:5]
+
+
                     
 //------------UART_Init------------
 // Initialize the UART for 115,200 baud rate (assuming 12 MHz SMCLK clock),
@@ -85,14 +94,14 @@ void UART_Init(EUSCI_A_Type* uartSource){
       // EUSCI_A0 uses P1.2 (RX) and P1.3 (TX)
       P1->SEL0 |= 0x0C;
       P1->SEL1 &= ~0x0C;
-      NVIC->IP[16] = 0x40; // priority 2
+      NVIC->IP[16] = 0x3<<5; // priority 3
       NVIC->ISER[0] |= 0x00010000; // enable interrupt 16 in NVIC
   } 
   else if (uartPort == EUSCI_A2) {
       // EUSCI_A2 uses P3.2 (RX) and P3.3 (TX)
       P3->SEL0 |= 0x0C;
       P3->SEL1 &= ~0x0C;
-      NVIC->IP[18] = 0x2<<5; // priority 2
+      NVIC->IP[18] = 0x3<<5; // priority 3
       NVIC->ISER[0] |= 0x00040000; // enable interrupt 18 in NVIC
   }
   
@@ -104,38 +113,36 @@ void UART_Init(EUSCI_A_Type* uartSource){
 //No FIFO, on receive, just change current instruction
 void EUSCIA2_IRQHandler(void){
   if(EUSCI_A2->IFG&0x01){     // RX data register full
-    // RxFifo_Put((uint8_t)EUSCI_A2->RXBUF);
-    uint8_t data = (uint8_t)EUSCI_A2->RXBUF;
-    CurrCmd.inst = (Instruction_t) data;
+    parse_Pi_cmd((uint8_t)EUSCI_A2->RXBUF);
   } 
 }
 
 void EUSCIA0_IRQHandler(void){
   if(EUSCI_A0->IFG&0x01){    // RX data register full
-    // RxFifo_Put((uint8_t)EUSCI_A2->RXBUF);
-    uint8_t data = (uint8_t)EUSCI_A0->RXBUF;
-    CurrCmd.inst = (Instruction_t) data;
+    parse_Pi_cmd((uint8_t)EUSCI_A0->RXBUF);
   } 
 }
 
-///------------UART_OutChar------------
-// Output 8-bit to serial port, busy-wait
-// Input: letter is an 8-bit data to be transferred
-// Output: none
-void UART_OutChar(uint8_t data){
-  while((uartPort->IFG&0x02) == 0);
-  uartPort->TXBUF = data;
-}
+void parse_Pi_cmd(uint8_t uart_data){
+  if (state == 0) {
+    if (uart_data == PACKET_START_BYTE) { //only parse data if started with start_byte 
+      state = 1;
+    }
+  } else {
+    // Store uart_data into buffer
+    buffer[state] = uart_data;
+    state++;
 
-
-//------------UART_OutString------------
-// Output String (NULL termination)
-// Input: pointer to a NULL-terminated string to be transferred
-// Output: none
-void UART_OutString(uint8_t *pt){
-  while(*pt != '\0'){
-    UART_OutChar(*pt);
-    pt++;
+    if (state == 7) { // finished length of command transmission
+      uint8_t checksum = buffer[1] ^ buffer[2] ^ buffer[3] ^ buffer[4] ^ buffer[5];
+      
+      if (checksum == buffer[6]) {
+        CurrCmd.instructionType = (Instruction_t) buffer[1];
+        CurrCmd.leftDuty  = ((uint16_t) buffer[2] << 8) | (uint16_t) buffer[3];
+        CurrCmd.rightDuty = ((uint16_t) buffer[4] << 8) | (uint16_t) buffer[5];
+        CurrCmd.isNew = 1;
+      }
+      state = 0; // Reset for next packet
+    }
   }
 }
-

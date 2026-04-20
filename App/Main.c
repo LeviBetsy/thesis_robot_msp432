@@ -53,11 +53,9 @@ policies, either expressed or implied, of the FreeBSD Project.
 #include "src/inc/Clock.h"
 #include "src/inc/SysTick.h"
 #include "src/inc/LaunchPad.h"
-#include "src/inc/MotorSimple.h"
-// #include "../inc/UARTpi.h"
-#include "src/UARTpi.h"
-#include "src/inc/Pi_Commands.h"
 #include "src/inc/CortexM.h"
+#include "src/UART/UARTpi.h"
+#include "src/motor/Motor.h"
 
 volatile Command_t CurrCmd;
 // Driver test
@@ -66,46 +64,48 @@ void Pause(void){
   while(LaunchPad_Input() != 0) {};     // wait for release
 }
 
+//Interrupt lists:
+//UART Interrupt to receive instruction from pi (Priority 3)
+//Interrupt from Tachometer reader (Priority 2)
+//Note: PWM wave for Motor does not use interrupt
+
 
 void main (void) {
   Clock_Init48MHz();
   LaunchPad_Init(); // built-in switches and LEDs
   Bump_Init();      // bump switches
-  Motor_InitSimple();     // your function
-  SysTick_Init(); //DONT FORGET SYSTICK_INIT
+  Motor_Init();     
 
   //Enable UART to communicate with the PI
   UART_Init(EUSCI_A2);
 
-  //Interrupt lists:
-  //UART Interrupt when received instruction from pi 
-  //TODO: UART Interrupt to record speed of left and right wheel & populate a FIFO
   EnableInterrupts();
 
 
-  CurrCmd.inst = IDLE; //this will get changed through UART interrupt
+  // CurrCmd.inst = IDLE; //this will get changed through UART interrupt
+  CurrCmd.instructionType = STOP;
   while(1){
-    switch(CurrCmd.inst) {
-      case FORWARD: 
-          Motor_ForwardSimple(2500,500);
-          // command.inst = IDLE;
+    if (CurrCmd.isNew){
+      CurrCmd.isNew = 0;
+      switch (CurrCmd.instructionType) {
+        case FORWARD: 
+          Motor_Forward(CurrCmd.leftDuty, CurrCmd.rightDuty);
           break;
-      case BACKWARD:
-          Motor_BackwardSimple(2500,500);
-          // command.inst = IDLE;
+        case BACKWARD:
+          Motor_Backward(CurrCmd.leftDuty, CurrCmd.rightDuty);
           break;
-      case LEFT:
-          Motor_LeftSimple(2500,500);
-          // command.inst = IDLE;
+        case LEFT:
+          Motor_Left(CurrCmd.leftDuty, CurrCmd.rightDuty);
           break;
-      case RIGHT:
-          Motor_RightSimple(2500,500);
-          // command.inst = IDLE;
+        case RIGHT:
+          Motor_Right(CurrCmd.leftDuty, CurrCmd.rightDuty);
           break;
-      case IDLE:
-      default:
-          Motor_StopSimple();
+        case STOP:
+        default:
+          Motor_Stop();
           break;
+      }
+
     }
   }
 

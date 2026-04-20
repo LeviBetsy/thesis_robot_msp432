@@ -63,10 +63,10 @@ policies, either expressed or implied, of the FreeBSD Project.
 #ifndef MOTORSIMPLE_H_
 #define MOTORSIMPLE_H_
 
-#include "Pi_Commands.h"
 #include "msp.h"
-#include "SysTick.h"
-#include "Bump.h"
+#include "../inc/SysTick.h"
+#include "../inc/Bump.h"
+#include "../UART/UARTpi.h"
 
 // *******Lab 12 solution*******
 

@@ -2,7 +2,6 @@
 #define UARTPI_H_
 
 #include "msp.h"
-#include "inc/Pi_Commands.h"
 
 /**
  * @file      UART1.h
@@ -98,52 +97,30 @@ policies, either expressed or implied, of the FreeBSD Project.
  */
 void UART_Init(EUSCI_A_Type* uartSource);
 
-// /**
-//  * @details   Receive a character from EUSCI_A2 UART
-//  * @details   Interrupt synchronization,
-//  * @details   blocking, spin if RxFifo is empty
-//  * @param  none
-//  * @return ASCII code of received data
-//  * @note   UART_Init must be called once prior
-//  * @brief  Receive byte into MSP432
-//  */
-// uint8_t UART_InChar(void);
 
 
-// /**
-//  * @details   Return Status of input uart buffer
-//  * @param  none
-//  * @return 0 if there is no data, >0 if there is data
-//  * @note   UART_Init must be called once prior
-//  * @brief  Receive byte into MSP432
-//  */
-// uint8_t UART_HasIn(void);
+void parse_Pi_cmd(uint8_t uart_data);
 
+//****************** Data structure for storing data transmitted from the Pi*/
 
-// // Returns how much data available for reading
-// // Input: none
-// // Output: number of bytes in receive FIFO
-// uint32_t UART_InStatus(void);
+#define PACKET_START_BYTE 0xAA
 
-/**
- * @details   Transmit a character to EUSCI_A2 UART
- * @details   Busy-wait synchronization,
- * @details   blocking, wait for UART to be ready
- * @param  data is the ASCII code for data to send
- * @return none
- * @note   UART_Init must be called once prior
- * @brief  Transmit byte out of MSP432
- */
-void UART_OutChar(uint8_t data);
+typedef enum instruction_t{
+    STOP     = 0,
+    FORWARD  = 1,
+    BACKWARD = 2,
+    LEFT     = 3,
+    RIGHT    = 4
+} Instruction_t;
 
-/**
- * @details   Transmit a string to EUSCI_A2 UART
- * @param  pt is pointer to null-terminated ASCII string to be transferred
- * @return none
- * @note   UART_Init must be called once prior
- * @brief  Transmit string out of MSP432
- */
-void UART_OutString(uint8_t *pt);
+typedef struct command_t {
+    Instruction_t instructionType;
+    uint16_t leftDuty;
+    uint16_t rightDuty;
+    uint8_t  isNew; // Flag to indicate a new complete command is ready
+} Command_t;
+
+extern volatile Command_t CurrCmd;
 
 
 #endif

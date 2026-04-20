@@ -105,11 +105,6 @@ void Motor_ForwardSimple(uint16_t duty, uint32_t time){
   uint16_t L = 10000-H;
   uint32_t i;
   for (i = 0; i < time; i++) {
-    //check currcmd
-    if (CurrCmd.inst != FORWARD) {
-      Motor_StopSimple();
-      return;
-    }
     //check bump
     uint8_t bumped = Bump_Read();
     if (bumped < 63) { //using positive logic to detect bumper
@@ -142,11 +137,6 @@ void Motor_BackwardSimple(uint16_t duty, uint32_t time){
   uint16_t L = 10000-H;
   uint32_t i;
   for (i = 0; i < time; i++) {
-    //check currcmd
-    if (CurrCmd.inst != BACKWARD) {
-      Motor_StopSimple();
-      return;
-    }
     //check bump
     uint8_t bumped = Bump_Read();
     if (bumped < 63) { //using positive logic to detect bumper
@@ -182,11 +172,6 @@ void Motor_LeftSimple(uint16_t duty, uint32_t time){
   uint16_t L = 10000-H;
   uint32_t i;
   for (i = 0; i < time; i++) {
-    //check currcmd
-    if (CurrCmd.inst != LEFT) {
-      Motor_StopSimple();
-      return;
-    }
     //check bump
     uint8_t bumped = Bump_Read();
     if (bumped < 63) { //using positive logic to detect bumper
@@ -223,11 +208,6 @@ void Motor_RightSimple(uint16_t duty, uint32_t time){
   uint16_t L = 10000-H;
   uint32_t i;
   for (i = 0; i < time; i++) {
-    //check currcmd
-    if (CurrCmd.inst != RIGHT) {
-      Motor_StopSimple();
-      return;
-    }
     //check bump
     uint8_t bumped = Bump_Read();
     if (bumped < 63) { //using positive logic to detect bumper
