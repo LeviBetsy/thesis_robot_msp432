@@ -64,7 +64,6 @@ policies, either expressed or implied, of the FreeBSD Project.
 #define MOTORSIMPLE_H_
 
 #include "msp.h"
-#include "../inc/SysTick.h"
 #include "../inc/Bump.h"
 #include "../UART/UARTpi.h"
 

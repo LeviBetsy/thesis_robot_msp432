@@ -67,6 +67,7 @@ void PWM_Init34(uint16_t CCR0, uint16_t duty3, uint16_t duty4){
   TIMER_A0->CCTL[0] = 0x0080;      // CCI0 toggle
   TIMER_A0->CCR[0] = CCR0;       // Period is (CRR0 + 1)*1.333us
   TIMER_A0->EX0 = 0x0000;          //TAIDEX 0
+  
   TIMER_A0->CCTL[3] = 0x0040;      // CCR3 toggle/reset
   TIMER_A0->CCR[3] = duty3;        // CCR3 duty cycle is duty1/period
   TIMER_A0->CCTL[4] = 0x0040;      // CCR4 toggle/reset

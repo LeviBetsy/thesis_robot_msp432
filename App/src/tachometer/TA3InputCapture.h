@@ -53,6 +53,9 @@ policies, either expressed or implied, of the FreeBSD Project.
 #ifndef TA3INPUTCAPTURE_H_
 #define TA3INPUTCAPTURE_H_
 
+#include <stdint.h>
+#include "msp.h"
+
 /**
  * Initialize Timer A3 in edge time mode to request interrupts on
  * the rising edges of P10.4 (TA3CCP0) and P10.5 (TA3CCP1).  The

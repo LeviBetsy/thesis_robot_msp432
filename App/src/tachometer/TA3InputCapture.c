@@ -46,8 +46,7 @@ policies, either expressed or implied, of the FreeBSD Project.
 // external signal connected to P10.5 (TA3CCP1) (trigger on rising edge)
 // external signal connected to P10.4 (TA3CCP0) (trigger on rising edge)
 
-#include <stdint.h>
-#include "msp.h"
+#include "TA3InputCapture.h"
 
 void ta3dummy(uint16_t t){};       // dummy function
 void (*CaptureTask0)(uint16_t time) = ta3dummy;// user function
@@ -74,7 +73,9 @@ void TimerA3Capture_Init01(void(*task0)(uint16_t time), void(*task1)(uint16_t ti
     P10->SEL0 |= 0x30;
     P10->SEL1 &= ~0x30;
     P10->DIR &= ~0x30;
-    TIMER_A3->CTL &= ~0x0030;
+
+    //********* Initializing Timer A3 */
+    TIMER_A3->CTL &= ~0x0030; //halt Timer A3
     // bits15-10=XXXXXX, reserved
     // bits9-8=10,       clock source to SMCLK
     // bits7-6=00,       input clock divider /1
@@ -109,12 +110,13 @@ void TimerA3Capture_Init01(void(*task0)(uint16_t time), void(*task1)(uint16_t ti
     NVIC->IP[15] = 0x2<<5; // priority 2
     // NVIC->ISER[0] |= (1 << 15);
     NVIC->ISER[0] |= 0x00008000;
-    TIMER_A3->CTL |= 0x0024;        // reset and start Timer A0 in continuous up mode
+
+    //********* reset and start Timer A3 in continuous up mode ******
+    TIMER_A3->CTL |= 0x0024;        
 
 }
 
 void TA3_0_IRQHandler(void){
-    // write this for Lab 16
     TIMER_A3->CCTL[0] &= ~0x0001; //acknowledge CCIFG bit
     (*CaptureTask0)(TIMER_A3->CCR[0]);
 }

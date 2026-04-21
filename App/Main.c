@@ -51,13 +51,15 @@ policies, either expressed or implied, of the FreeBSD Project.
 #include "msp.h"
 #include "src/inc/Bump.h"
 #include "src/inc/Clock.h"
-#include "src/inc/SysTick.h"
 #include "src/inc/LaunchPad.h"
 #include "src/inc/CortexM.h"
 #include "src/UART/UARTpi.h"
 #include "src/motor/Motor.h"
+#include "src/tachometer/Tachometer.h"
 
 volatile Command_t CurrCmd;
+volatile uint8_t send_uart_flag;
+
 // Driver test
 void Pause(void){
   while(LaunchPad_Input()==0) {};  // wait for touch
@@ -67,6 +69,7 @@ void Pause(void){
 //Interrupt lists:
 //UART Interrupt to receive instruction from pi (Priority 3)
 //Interrupt from Tachometer reader (Priority 2)
+//Interrupt from Tachometer.c every sample tie 349.5ms (Priority 2)
 //Note: PWM wave for Motor does not use interrupt
 
 
@@ -74,10 +77,15 @@ void main (void) {
   Clock_Init48MHz();
   LaunchPad_Init(); // built-in switches and LEDs
   Bump_Init();      // bump switches
+
+  //Enable Motor
   Motor_Init();     
 
   //Enable UART to communicate with the PI
   UART_Init(EUSCI_A2);
+
+  //Enable Tachometer
+  Tachometer_Init();
 
   EnableInterrupts();
 
@@ -85,7 +93,7 @@ void main (void) {
   // CurrCmd.inst = IDLE; //this will get changed through UART interrupt
   CurrCmd.instructionType = STOP;
   while(1){
-    if (CurrCmd.isNew){
+    if (CurrCmd.isNew){ //only change Motor State when Command changes
       CurrCmd.isNew = 0;
       switch (CurrCmd.instructionType) {
         case FORWARD: 
@@ -105,8 +113,13 @@ void main (void) {
           Motor_Stop();
           break;
       }
-
     }
+
+    if(send_uart_flag){
+      send_uart_flag = 0;
+      UA
+    }
+
   }
 
 }
