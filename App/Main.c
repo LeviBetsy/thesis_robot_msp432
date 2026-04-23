@@ -66,7 +66,7 @@ void Pause(void){
   while(LaunchPad_Input() != 0) {};     // wait for release
 }
 
-//Interrupt lists:
+//*********** Interrupt lists:************
 //UART Interrupt to receive instruction from pi (Priority 3)
 //Interrupt from Tachometer reader (Priority 2)
 //Interrupt from Tachometer.c every sample tie 349.5ms (Priority 2)
@@ -80,17 +80,13 @@ void main (void) {
 
   //Enable Motor
   Motor_Init();     
-
   //Enable UART to communicate with the PI
   UART_Init(EUSCI_A2);
-
   //Enable Tachometer
   Tachometer_Init();
-
+  
   EnableInterrupts();
 
-
-  // CurrCmd.inst = IDLE; //this will get changed through UART interrupt
   CurrCmd.instructionType = STOP;
   while(1){
     if (CurrCmd.isNew){ //only change Motor State when Command changes
@@ -117,7 +113,7 @@ void main (void) {
 
     if(send_uart_flag){
       send_uart_flag = 0;
-      UA
+      send_tachometer();
     }
 
   }

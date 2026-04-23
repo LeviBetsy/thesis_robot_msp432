@@ -48,9 +48,9 @@ policies, either expressed or implied, of the FreeBSD Project.
 
 #include "TA3InputCapture.h"
 
-void ta3dummy(uint16_t t){};       // dummy function
-void (*CaptureTask0)(uint16_t time) = ta3dummy;// user function
-void (*CaptureTask1)(uint16_t time) = ta3dummy;// user function
+// void ta3dummy(void);       // dummy function
+void (*CaptureTask0)(void);// user function
+void (*CaptureTask1)(void);// user function
 
 
 //------------TimerA3Capture_Init01------------
@@ -64,11 +64,14 @@ void (*CaptureTask1)(uint16_t time) = ta3dummy;// user function
 //              parameter is 16-bit up-counting timer value when P10.5 (TA3CCP1) edge occurred (units of 0.083 usec)
 // Output: none
 // Assumes: low-speed subsystem master clock is 12 MHz
-void TimerA3Capture_Init01(void(*task0)(uint16_t time), void(*task1)(uint16_t time)){
-    // write this for Lab 16
+void TimerA3Capture_Init01(void(*task0)(void), void(*task1)(void)){
     //assigning interrupt task to user defined task
     CaptureTask0 = task0;
     CaptureTask1 = task1;
+    //Initialize Left (P5.2) & Right (P5.0) Encoder B
+    P5->SEL0 &= ~0x05;
+    P5->SEL1 &= ~0x05;
+    P5->DIR &= ~0x05;
     // Initialize P10.4 as TA3CCP0 & P10.5 as TA3CPP1 and make them input
     P10->SEL0 |= 0x30;
     P10->SEL1 &= ~0x30;
@@ -113,17 +116,16 @@ void TimerA3Capture_Init01(void(*task0)(uint16_t time), void(*task1)(uint16_t ti
 
     //********* reset and start Timer A3 in continuous up mode ******
     TIMER_A3->CTL |= 0x0024;        
-
 }
 
-void TA3_0_IRQHandler(void){
+void TA3_0_IRQHandler(void){ //Right wheel
     TIMER_A3->CCTL[0] &= ~0x0001; //acknowledge CCIFG bit
-    (*CaptureTask0)(TIMER_A3->CCR[0]);
+    (*CaptureTask0)();
 }
 
-void TA3_N_IRQHandler(void){
+void TA3_N_IRQHandler(void){ //Left wheel
     if (TIMER_A3->CCTL[1] & 0x0001){
         TIMER_A3->CCTL[1] &= ~0x0001; //acknowledge CCIFG bit
-        (*CaptureTask1)(TIMER_A3->CCR[1]);
+        (*CaptureTask1)();
     }
 }

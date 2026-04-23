@@ -101,6 +101,8 @@ void UART_Init(EUSCI_A_Type* uartSource);
 
 void parse_Pi_cmd(uint8_t uart_data);
 
+void UART_OutChar(uint8_t data);
+
 //****************** Data structure for storing data transmitted from the Pi*/
 
 #define PACKET_START_BYTE 0xAA

@@ -69,6 +69,6 @@ policies, either expressed or implied, of the FreeBSD Project.
  * @note  Assumes low-speed subsystem master clock is 12 MHz
  * @brief  Initialize Timer A3 interrupts on P10.4 and P10.5
  */
-void TimerA3Capture_Init01(void(*task0)(uint16_t time), void(*task1)(uint16_t time));
+void TimerA3Capture_Init01(void(*task0)(void), void(*task1)(void));
 
 #endif /* TA3INPUTCAPTURE_H_ */

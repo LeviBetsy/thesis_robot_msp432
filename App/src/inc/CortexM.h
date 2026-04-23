@@ -67,27 +67,28 @@ void DisableInterrupts(void); // Disable interrupts
  */
 void EnableInterrupts(void);  // Enable interrupts
 
+//FAULTY FUNCTION
 
-/**
- * Start a critical section. Code between StartCritical and EndCritical is run atomically
- *
- * @param  none
- * @return copy of the PRIMASK (I bit) before StartCritical called
- *
- * @brief  Saves a copy of PRIMASK and disables interrupts
- */
-long StartCritical(void);    
+// /**
+//  * Start a critical section. Code between StartCritical and EndCritical is run atomically
+//  *
+//  * @param  none
+//  * @return copy of the PRIMASK (I bit) before StartCritical called
+//  *
+//  * @brief  Saves a copy of PRIMASK and disables interrupts
+//  */
+// long StartCritical(void);    
 
 
-/**
- * End a critical section. Code between StartCritical and EndCritical is run atomically
- *
- * @param  sr is PRIMASK (I bit) before StartCritical called
- * @return none
- *
- * @brief  Sets PRIMASK with value passed in
- */
-void EndCritical(long sr);    // restore I bit to previous value
+// /**
+//  * End a critical section. Code between StartCritical and EndCritical is run atomically
+//  *
+//  * @param  sr is PRIMASK (I bit) before StartCritical called
+//  * @return none
+//  *
+//  * @brief  Sets PRIMASK with value passed in
+//  */
+// void EndCritical(long sr);    // restore I bit to previous value
 
 
 /**

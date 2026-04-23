@@ -52,6 +52,7 @@ EUSCI_A_Type* uartPort;
 
 static uint8_t state = 0;
 //a correct sequence would be 0xAA Inst_T LeftDuty_MSB LeftDuty_LSB RightDuty_MSB RightDuty_LSB Checksum
+//Big-Endian
 static uint8_t buffer[7]; //buffer for storing uart_message from Pi
 //uart_buffer[0]: start byte (0xAA if msg is correct)
 //uart_buffer[1]: Instruction type
@@ -121,6 +122,11 @@ void EUSCIA0_IRQHandler(void){
   if(EUSCI_A0->IFG&0x01){    // RX data register full
     parse_Pi_cmd((uint8_t)EUSCI_A0->RXBUF);
   } 
+}
+
+void UART_OutChar(uint8_t data){
+  while((uartPort->IFG&0x02) == 0);
+  uartPort->TXBUF = data;
 }
 
 void parse_Pi_cmd(uint8_t uart_data){
